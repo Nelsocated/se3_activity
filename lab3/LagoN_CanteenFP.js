@@ -9,8 +9,12 @@
 // Q1: Why does lookupPrice go into the pipeline with chain(), while addTotal
 //     is applied with map()? What would go wrong if you used map() for lookupPrice?
 //     Answer:
+/*  lookupPrice already returns an Either (Right or Left), so chain() is used to pass that result along  as is, while addTotal just returns a plain order, so map() wraps it in a Right for us. If map() was used on lookupPrice, the result would be nested like Right(Right(order)) or Right(Left(error)), so the next check would receive a container instead of an order and a failed order would look like it passed.
+ */
 // Q2: Why do the validation steps return Either instead of Maybe?
 //     Answer:
+/*  Validation can end in an error or a success, and when it fails we need to know why. Maybe can't tell us that because Nothing carries no reason, but Either's Left can hold the error message.
+ */
 
 // ---------------------------------------------------------------------
 // PROVIDED: Containers from Module 3 (Examples 1.3 and 1.5) – DO NOT EDIT
@@ -70,6 +74,7 @@ const rawOrders = [
 // ---------- LEVEL 1: Maybe (Just / Nothing) ----------
 // getItemName :: Order -> Maybe String
 // Wrap order.item in Maybe, then use map() to trim and lowercase it.
+
 const getItemName = (order) =>
   Maybe(order.item).map((item) => item.trim().toLowerCase()); // TODO
 
@@ -77,6 +82,7 @@ const getItemName = (order) =>
 // fold the Maybe from getItemName:
 //   Nothing -> Left("<id>: Missing item")
 //   Just    -> Right(new order with the cleaned item name)
+
 const requireItem = (order) =>
   getItemName(order).fold(
     () => Left(`${order.id}: Missing item`),
@@ -87,14 +93,16 @@ const requireItem = (order) =>
 // lookupPrice :: Order -> Either String Order
 //   item not in MENU -> Left('<id>: "<item>" is not on the menu')
 //   otherwise        -> Right(new order with a price field)
+
 const lookupPrice = (order) =>
-  Object.prototype.hasOwnProperty.call(MENU, order.item)
+  MENU[order.item] !== undefined
     ? Right({ ...order, price: MENU[order.item] })
     : Left(`${order.id}: "${order.item}" is not on the menu`); // TODO
 
 // parseQty :: Order -> Either String Order
 //   qty is not a whole number >= 1 -> Left("<id>: Invalid quantity")
 //   otherwise -> Right(new order where qty is a Number)
+
 const parseQty = (order) =>
   Number.isInteger(Number(order.qty)) && Number(order.qty) >= 1
     ? Right({ ...order, qty: Number(order.qty) })
@@ -102,6 +110,7 @@ const parseQty = (order) =>
 
 // checkLimit :: Order -> Either String Order
 //   qty > MAX_QTY -> Left("<id>: Max 10 per order")
+
 const checkLimit = (order) =>
   Number(order.qty) > MAX_QTY
     ? Left(`${order.id}: Max 10 per order`)
@@ -109,11 +118,13 @@ const checkLimit = (order) =>
 
 // addTotal :: Order -> Order   (plain function — NOT a container)
 //   returns a new order with total = price * qty
+
 const addTotal = (order) => ({ ...order, total: order.price * order.qty }); // TODO
 
 // ---------- LEVEL 3: pipeK + map vs. chain ----------
 // pipeK :: (...(a -> Either e b)) -> a -> Either e b
 // Same idea as Module 3 Example 2.3, but start the reduce with Right(input).
+
 const pipeK =
   (...fns) =>
   (input) =>
@@ -121,10 +132,12 @@ const pipeK =
 
 // validateOrder :: Order -> Either String Order
 // Glue the four checks together with pipeK (order matters!).
+
 const validateOrder = pipeK(requireItem, lookupPrice, parseQty, checkLimit); // TODO
 
 // processOrder :: Order -> Either String Order
 // validateOrder, then add the total. chain() or map()? You decide.
+
 const processOrder = (order) => validateOrder(order).map(addTotal); // TODO
 
 // ---------- LEVEL 4: Batch report with map / filter / reduce ----------
@@ -133,6 +146,7 @@ const processOrder = (order) => validateOrder(order).map(addTotal); // TODO
 //   rejected -> "A03: \"pizza\" is not on the menu" (the Left message)
 //   totalSales -> sum of all valid totals (use reduce + fold)
 // Hint: r.fold(() => false, () => true) tells you if r is a Right.
+
 const isRight = (r) =>
   r.fold(
     () => false,
