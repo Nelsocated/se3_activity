@@ -95,14 +95,14 @@ void run_print_hub(void) {
     sprintf(summary, "%d jobs, %d pages", JOBS, *total);
 
     /* RELEASE */
-    // FIX 2 (dangling pointer / use-after-free): print BEFORE freeing total
+    // FIX 1 (dangling pointer / use-after-free): print BEFORE freeing total
     printf("Total pages: %d\n", *total);
     printf("Summary: %s\n", summary);
 
     free(total);
     total = NULL;
 
-    // FIX 1 (memory leak): summary was never freed, so free it now
+    // FIX 2 (memory leak): summary was never freed, so free it now
     free(summary);
     summary = NULL;
 

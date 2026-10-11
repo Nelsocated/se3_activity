@@ -83,46 +83,55 @@ const NotificationService = (() => {
 
 // ---------- LEVEL 1: Small, focused functions (one job each) ----------
 // isValidJob :: Job -> Boolean          (true when pages > 0)
-const isValidJob = (job) => job.pages > 0; // TODO
+
+const isValidJob = (job) => job.pages > 0;
 
 // computeCost :: Job -> Job             (new job with cost = pages × rate)
+
 const computeCost = (job) => ({
   ...job,
   cost: job.pages * (job.color ? RATES.color : RATES.bw),
-}); // TODO
+});
 
 // applyBulkDiscount :: Job -> Job       (10% off when pages >= BULK_PAGES)
+
 const applyBulkDiscount = (job) =>
   job.pages >= BULK_PAGES
     ? { ...job, cost: job.cost * (1 - BULK_DISCOUNT) }
-    : { ...job }; // TODO
+    : { ...job };
 
 // formatReceipt :: Job -> String
 //   "P04 | Dana | 5 pages | COLOR | ₱50.00"   (B&W jobs show "B&W")
+
 const formatReceipt = (job) =>
-  `${job.id} | ${job.student} | ${job.pages} pages | ${job.color ? "COLOR" : "B&W"} | ₱${job.cost.toFixed(2)}`; // TODO
+  `${job.id} | ${job.student} | ${job.pages} pages | ${job.color ? "COLOR" : "B&W"} | ₱${job.cost.toFixed(2)}`;
 
 // formatRejection :: Job -> String
 //   "REJECTED: P03 has no pages"
-const formatRejection = (job) => `REJECTED: ${job.id} has no pages`; // TODO
+
+const formatRejection = (job) => `REJECTED: ${job.id} has no pages`;
 
 // ---------- LEVEL 2: Integration with pipe() ----------
 // pipe :: (...Functions) -> a -> b      (Module 3, Example 2.1)
+
 const pipe =
   (...fns) =>
   (x) =>
-    fns.reduce((result, fn) => fn(result), x); // TODO
+    fns.reduce((result, fn) => fn(result), x);
 
 // priceJob :: Job -> Job                (pipe of computeCost and applyBulkDiscount)
-const priceJob = pipe(computeCost, applyBulkDiscount); // TODO
+
+const priceJob = pipe(computeCost, applyBulkDiscount);
 
 // processJob :: Job -> String           (pipe of priceJob and formatReceipt)
-const processJob = pipe(priceJob, formatReceipt); // TODO
+
+const processJob = pipe(priceJob, formatReceipt);
 
 // processQueue :: [Job] -> [String]
 //   valid jobs -> processJob, invalid jobs -> formatRejection
+
 const processQueue = (jobs) =>
-  jobs.map((job) => (isValidJob(job) ? processJob(job) : formatRejection(job))); // TODO
+  jobs.map((job) => (isValidJob(job) ? processJob(job) : formatRejection(job)));
 
 // ---------- LEVEL 3: The top layer (system integration) ----------
 // runPrintHub :: [Job] -> { receipts: [String], totalSales: Number }
@@ -130,6 +139,7 @@ const processQueue = (jobs) =>
 //   2. notify each student with their receipt line using
 //      NotificationService.notify(student, message)
 //   3. totalSales = sum of the prices of VALID jobs (filter + map + reduce)
+
 const runPrintHub = (jobs) => {
   const receipts = processQueue(jobs);
 
@@ -144,7 +154,7 @@ const runPrintHub = (jobs) => {
     .reduce((sum, cost) => sum + cost, 0);
 
   return { receipts, totalSales };
-}; // TODO
+};
 
 // ======================== END OF YOUR CODE ========================
 
